@@ -1,32 +1,22 @@
-import _ from 'lodash'
-import moment from 'moment'
+import _ from 'lodash';
+import moment from 'moment';
 var fiLocale = require('moment/locale/fi');
-import React from 'react'
-import {
-  View,
-  Text,
-  StyleSheet,
-  Dimensions,
-  PixelRatio
-} from 'react-native'
+import React from 'react';
+import { View, Text, StyleSheet, Dimensions, PixelRatio } from 'react-native';
 
-import mobx from 'mobx'
-import { observer } from 'mobx-react/native'
-import MapView from 'react-native-maps'
-import state from '../domain/AppState'
-import {
-  VictoryChart,
-  VictoryLine,
-  VictoryAxis
-} from 'victory-chart-native'
+import mobx from 'mobx';
+import { observer } from 'mobx-react/native';
+import MapView from 'react-native-maps';
+import state from '../domain/AppState';
+import { VictoryChart, VictoryLine, VictoryAxis } from 'victory-native';
 
-const DeviceWidth = Dimensions.get('window').width
-const DeviceHeight = Dimensions.get('window').height
+const DeviceWidth = Dimensions.get('window').width;
+const DeviceHeight = Dimensions.get('window').height;
 
 let styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -34,7 +24,7 @@ let styles = StyleSheet.create({
     marginTop: 20,
     paddingBottom: 20,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(151, 151, 151, 0.5)'
+    borderColor: 'rgba(151, 151, 151, 0.5)',
   },
   headerTitleContainer: {
     flex: 2.5,
@@ -42,12 +32,12 @@ let styles = StyleSheet.create({
   headerTitle: {
     fontSize: 21,
     color: '#4E4E4E',
-    marginBottom: 7
+    marginBottom: 7,
   },
   headerValueTitle: {
     fontSize: 21,
     color: '#09d200',
-    marginBottom: 7
+    marginBottom: 7,
   },
   headerBatteryValues: {
     flex: 1,
@@ -63,57 +53,75 @@ let styles = StyleSheet.create({
     marginBottom: 20,
     marginLeft: 5,
     width: DeviceWidth,
-  }
-})
+  },
+});
 
-
-@observer export default class BatteryView extends React.Component {
-
+@observer
+export default class BatteryView extends React.Component {
   componentDidMount() {
-    moment.updateLocale('fi', fiLocale)
+    moment.updateLocale('fi', fiLocale);
   }
 
   render() {
     if (!state.selectedBattery) {
-      return null
+      return null;
     }
     // We'll create a new Battery to get access to computed funcs.
     // Navigation passprops in iOS get rid of them due to native-bridging.
-    var battery = state.selectedBattery
-    var newestUpdateFromNow = moment(battery.newestUpdateTimestamp).fromNow()
+    var battery = state.selectedBattery;
+    var newestUpdateFromNow = moment(battery.newestUpdateTimestamp).fromNow();
 
     var chartTickValues = [
       moment(battery.newestUpdateTimestamp).subtract(48, 'hours').toDate(),
       moment(battery.newestUpdateTimestamp).subtract(24, 'hours').toDate(),
-      moment(battery.newestUpdateTimestamp).toDate()
-    ]
+      moment(battery.newestUpdateTimestamp).toDate(),
+    ];
 
-    var chartData =  _.map(battery.newestHistoryEvents, (event) => {
+    var chartData = _.map(battery.newestHistoryEvents, event => {
       return {
         x: new Date(event.timestamp),
-        y: parseFloat(event.charge)
-      }
-    })
-    var showRedColor = battery.daysLeft <= 0
+        y: parseFloat(event.charge),
+      };
+    });
+    var showRedColor = battery.daysLeft <= 0;
 
     return (
       <View style={styles.container}>
         <View style={styles.header}>
           <View style={styles.headerTitleContainer}>
             <Text style={styles.headerTitle}>{battery.hostName}</Text>
-            <Text style={[styles.headerTitle, { fontSize: 18 }]}>{battery.hostLocation}</Text>
-            <Text style={[styles.headerTitle, { fontSize: 14, fontWeight: '300' }]}>
+            <Text style={[styles.headerTitle, { fontSize: 18 }]}>
+              {battery.hostLocation}
+            </Text>
+            <Text
+              style={[styles.headerTitle, { fontSize: 14, fontWeight: '300' }]}
+            >
               päivitetty {newestUpdateFromNow}
             </Text>
           </View>
           <View style={styles.headerBatteryValues}>
-            <Text style={[styles.headerValueTitle, { color: showRedColor ? 'red' : '#09d200' }]}>
+            <Text
+              style={[
+                styles.headerValueTitle,
+                { color: showRedColor ? 'red' : '#09d200' },
+              ]}
+            >
               {battery.percentage} %
             </Text>
-            <Text style={[styles.headerValueTitle, { fontSize: 18, color: showRedColor ? 'red' : '#09d200' }]}>
+            <Text
+              style={[
+                styles.headerValueTitle,
+                { fontSize: 18, color: showRedColor ? 'red' : '#09d200' },
+              ]}
+            >
               {battery.currentChargeValue}
             </Text>
-            <Text style={[styles.headerValueTitle, { fontSize: 14, color: showRedColor ? 'red' : '#09d200' }]}>
+            <Text
+              style={[
+                styles.headerValueTitle,
+                { fontSize: 14, color: showRedColor ? 'red' : '#09d200' },
+              ]}
+            >
               {battery.daysLeft} päivää
             </Text>
           </View>
@@ -130,32 +138,27 @@ let styles = StyleSheet.create({
           <MapView.Marker
             coordinate={{
               latitude: battery.hostLatitude,
-              longitude: battery.hostLongitude
+              longitude: battery.hostLongitude,
             }}
             title={battery.hostName}
-            pinColor='#09d200'
+            pinColor="#09d200"
           />
         </MapView>
         <VictoryChart
           height={DeviceHeight * 0.3}
           scale={{
-            x: "time"
+            x: 'time',
           }}
         >
           <VictoryAxis
             padding={5}
             tickValues={chartTickValues}
-            tickFormat={(x) => moment(x).format('D.M.')}
+            tickFormat={x => moment(x).format('D.M.')}
           />
-          <VictoryAxis
-            padding={5}
-            dependentAxis
-          />
-          <VictoryLine
-            data={chartData}
-          />
+          <VictoryAxis padding={5} dependentAxis />
+          <VictoryLine data={chartData} />
         </VictoryChart>
       </View>
-    )
+    );
   }
 }
